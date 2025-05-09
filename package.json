@@ -1,0 +1,23 @@
+{
+  "name": "mcp-deployment-configurator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jr0dbet/mcp-deployment-configurator.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jr0dbet/mcp-deployment-configurator/issues"
+  },
+  "homepage": "https://github.com/jr0dbet/mcp-deployment-configurator#readme",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.11.1"
+  }
+}
