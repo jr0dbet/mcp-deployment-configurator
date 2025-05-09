@@ -1,0 +1,64 @@
+@startuml
+' Global settings
+left to right direction
+skinparam sequenceParticipantSpacing 80
+skinparam sequenceMessageSpacing 20
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 12
+
+' Agent & Client group
+package "Agent & Client" #FFF2CC {
+  [LLM Agent\n(e.g. LangChain, AI Browser)]
+}
+
+' MCP Server group
+package "MCP Server" #D9EAD3 {
+  [SSE/HTTP Endpoint\n(/mcp)]
+  [JSON-RPC Dispatcher]
+  [list_templates()]
+  [read_template(kind,name)]
+  [generate_config(kind,name,vars)]
+  [apply_config(path,auto)]
+}
+
+' Filesystem & IaC group
+package "Filesystem & IaC" #CFE2F3 {
+  [modules/terraform/...]
+  [modules/kubernetes/...]
+  [tmp/\ntemporary config dir]
+}
+
+' Terraform CLI group
+package "Terraform CLI" #F4CCCC {
+  [terraform init\nplan/apply]
+}
+
+' Flows
+[LLM Agent\n(e.g. LangChain, AI Browser)] --> [SSE/HTTP Endpoint\n(/mcp)]: 1. tools/list_templates
+[SSE/HTTP Endpoint\n(/mcp)] --> [JSON-RPC Dispatcher]
+[JSON-RPC Dispatcher] --> [list_templates()]: routes to
+[list_templates()] --> [modules/terraform/...]: reads
+[list_templates()] --> [modules/kubernetes/...]: reads
+[modules/terraform/...] --> [list_templates()]: returns
+[modules/kubernetes/...] --> [list_templates()]: returns
+[list_templates()] --> [LLM Agent\n(e.g. LangChain, AI Browser)]: JSON result
+
+[LLM Agent\n(e.g. LangChain, AI Browser)] --> [SSE/HTTP Endpoint\n(/mcp)]: 2. tools/read_template
+[JSON-RPC Dispatcher] --> [read_template(kind,name)]: routes to
+[read_template(kind,name)] --> [modules/terraform/...]
+[modules/terraform/...] --> [read_template(kind,name)]: returns
+[read_template(kind,name)] --> [LLM Agent\n(e.g. LangChain, AI Browser)]: JSON result
+
+[LLM Agent\n(e.g. LangChain, AI Browser)] --> [SSE/HTTP Endpoint\n(/mcp)]: 3. tools/generate_config
+[JSON-RPC Dispatcher] --> [generate_config(kind,name,vars)]: routes to
+[generate_config(kind,name,vars)] --> [tmp/\ntemporary config dir]: pack & write vars
+[tmp/\ntemporary config dir] --> [generate_config(kind,name,vars)]: returns path
+[generate_config(kind,name,vars)] --> [LLM Agent\n(e.g. LangChain, AI Browser)]: JSON result
+
+[LLM Agent\n(e.g. LangChain, AI Browser)] --> [SSE/HTTP Endpoint\n(/mcp)]: 4. tools/apply_config
+[JSON-RPC Dispatcher] --> [apply_config(path,auto)]: routes to
+[apply_config(path,auto)] --> [terraform init\nplan/apply]: invoke CLI
+[terraform init\nplan/apply] --> [apply_config(path,auto)]: output
+[apply_config(path,auto)] --> [LLM Agent\n(e.g. LangChain, AI Browser)]: JSON result
+@enduml
